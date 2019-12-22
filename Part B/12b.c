@@ -1,21 +1,23 @@
-#include <stdio.h>
-#include <string.h>
-#include <mpi.h>
+#include<mpi.h>
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+#define BUFFER_SIZE 20
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
 	int rank;
-	char msg[20];
+	char msg[BUFFER_SIZE];
 
 	MPI_Init(&argc, &argv);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-	if(rank == 0) strcpy(msg, "HELLO MSRIT");
-	MPI_Bcast(msg, 20, MPI_CHAR, 0, MPI_COMM_WORLD);
-	printf("[%d] msg = %s\n", rank, msg);
+	if(rank == 0) strcpy(msg, "Hello, World!\n");
+
+	MPI_Bcast(msg, BUFFER_SIZE, MPI_CHAR, 0, MPI_COMM_WORLD);
+	printf("\n[%d] %s", rank, msg);
 
 	// Wait for every process to reach this code
-	MPI_Barrier (MPI_COMM_WORLD);
+	MPI_Barrier(MPI_COMM_WORLD);
 	MPI_Finalize();
-	return 0;
 }
