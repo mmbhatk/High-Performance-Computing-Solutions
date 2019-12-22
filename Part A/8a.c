@@ -1,30 +1,24 @@
+#include<omp.h>
 #include<stdio.h>
 #include<stdlib.h>
-#include<omp.h>
 
-int main()
+int main(int argc, char* argv[])
 {
-	int n, *arr, i, max, c;
+	int i, n, *arr, max = 0, max_s = 0;
 	omp_lock_t MAXLOCK;
 
-	printf("\nEnter the number of elements: \n");
+	printf("\nEnter the number of elements: ");
 	scanf("%d", &n);
 
-	if(n <= 0) {printf("\nArray elements cannot be stored.\n"); exit(1);}
-
-	arr = (int *) malloc(sizeof(int) * n);
-	for(int i = 0; i < n; i++) arr[i] = rand() % 1000;
-	printf("\nThe array elements are:\n");
-	for(int i = 0; i < n; i++) printf("%d\t", arr[i]);
-
-	if(n == 1) {printf("\nLargest element: %d", arr[0]); exit(1);}
-
-	// Parallel calculation
-	printf("\nLocking...\n");
-	omp_init_lock(&MAXLOCK);
+	arr = (int *)malloc(sizeof(int) * n);
+	for(i = 0; i < n; i++) arr[i] = rand() % 1000;
+	printf("\nArray elements are: \n");
+	for(i = 0; i < n; i++) printf("%d\t", arr[i]);
+	
+	// Parallel computation
 	omp_set_num_threads(8);
+	omp_init_lock(&MAXLOCK);
 
-	max = 0;
 	#pragma omp parallel for
 	for(i = 0; i < n; i++)
 	{
@@ -35,88 +29,19 @@ int main()
 			omp_unset_lock(&MAXLOCK);
 		}
 	}
+
 	omp_destroy_lock(&MAXLOCK);
 
-	// Serial calculation
-	c = arr[0];
-	for(i = 1; i < n; i++)
-		if(arr[i] > c)
-			c = arr[i];
+	// Serial computation
+	for(i = 0; i < n; i++)
+		if(arr[i] > max_s)
+			max_s = arr[i];
 
-	printf("\nmax = %d", max);
-	printf("\nc = %d", c);
+
+	// Check the output validity
+	if(max == max_s) printf("\nMax value is the same for serial and parallel computation.\n");
+	else printf("\nMax value is not the same for serial and parallel computation.\n");
+
+	printf("\nThe largest number in the array is: %d\n", max);
 	free(arr);
 }
-
-
-/*
-#include <stdio.h>
-#include <omp.h>
-#include <stdlib.h>
-
-int main()
-{
-	int *array, i, N, max, c;
-	omp_lock_t MAXLOCK;
-
-	printf("Enter the number of elements\n");
-	scanf("%d", &N);
-
-	if (N <= 0)
-	{
-		printf("The array elements cannot be stored\n");
-		exit(1);
-	}
-
-	array = (int *) malloc(sizeof(int) * N);
-	for (i = 0; i < N; i++) array[i] = rand()%1000;
-
-	if (N == 1)
-	{
-		printf("The Largest Element In The Array Is %d", array[0]);
-		exit(1);
-	}
-
-	// Parallel Calc
-	printf("locking ..\n");
-	omp_set_num_threads(8);
-	omp_init_lock(&MAXLOCK);
-	max = 0;
-	printf("lock initialized\n");
-
-	#pragma omp parallel for
-	for (i = 0; i < N; i = i + 1)
-	{
-		if (array[i] > max)
-		{
-			omp_set_lock(&MAXLOCK);
-			if (array[i] > max)
-				max = array[i];
-			omp_unset_lock(&MAXLOCK);
-		}
-	}
-	omp_destroy_lock(&MAXLOCK);
-
-	// Serial Calculation 
-	c = array[0];
-	for (i = 1; i < N; i++)
-		if (array[i] > c)
-			c = array[i];
-
-	printf("The Array Elements Are \n");
-	for (i = 0; i < N; i++)
-	printf("%d\t", array[i]);
-	printf("\n");
-
-	// Compare
-	if (c == max) printf("\nThe Max Value Is Same For Serial And Using Parallel OpenMP Directive\n");
-	else
-	{
-		printf("\nThe Max Value Is NOT Same In Serial And Using Parallel OpenMP Directive\n");
-		exit(1);
-	}
-
-	free(array);
-	printf("\nThe Largest Number Of The Array Is %d\n", max);
-}
-*/
