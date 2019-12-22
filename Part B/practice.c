@@ -4,7 +4,7 @@
 
 int main(int argc, char* argv[])
 {
-	int i, rank, size, sum, value;
+	int i, rank, size, value, sum = 0;
 	MPI_Status status;
 
 	MPI_Init(&argc, &argv);
@@ -16,9 +16,9 @@ int main(int argc, char* argv[])
 		for(i = 1; i < size; i++)
 		{
 			MPI_Recv(&value, 1, MPI_INT, i, 0, MPI_COMM_WORLD, &status);
-			sum = sum + value;
+			sum += value;
 		}
-		printf("\n[%d] Sum = %d\n", rank, sum);
+		printf("\n[%d] Sum = %d\n", i, sum);
 	}
 	else
 		MPI_Send(&rank, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);

@@ -4,7 +4,7 @@
 
 int main(int argc, char* argv[])
 {
-	int i, rank, size, sum, value;
+	int i, rank, size, value, sum = 0;
 	MPI_Status status;
 
 	MPI_Init(&argc, &argv);
