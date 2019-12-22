@@ -1,16 +1,41 @@
 #include<omp.h>
 #include<stdio.h>
 #include<stdlib.h>
-#define N 1000
 
-int main(int argc, char* argv[])
+int main()
 {
-	int i, a[N], b[N], sum = 0;
+	int i, n, *arr, max = 0, max_s = 0;
 
-	for(i = 0; i < N; i++) a[i] = b[i] = i;
+	printf("\nEnter the number of elements: ");
+	scanf("%d", &n);
 
-	#pragma omp parallel for reduction(+: sum)
-	for(i = 0; i < N; i++)
-		sum = sum + (a[i] + b[i]);
-	printf("\nSum = %d\n", sum);
+	arr = (int *)malloc(sizeof(int) * n);
+	for(i = 0; i < n; i++) arr[i] = rand() % 1000;
+	printf("\nThe array elements are: \n");
+	for(i = 0; i < n; i++) printf("%d\t", arr[i]);
+
+	omp_set_num_threads(8);
+
+	// Parallel computation
+	#pragma omp parallel for
+	for(i = 0; i < n; i++)
+	{
+		if(arr[i] > max)
+		{
+			#pragma omp critical
+			if(arr[i] > max) max = arr[i];
+		}
+	}
+
+	//Serial computation
+	for(i = 0; i < n; i++)
+		if(arr[i] > max_s)
+			max_s = arr[i];
+
+	// Check for output validity
+	if(max == max_s) printf("\nMax value is the same for serial and parallel computation.\n");
+	else printf("\nMax value is not the same for serial and parallel computation.\n");
+
+	printf("\nThe largest number in the given array is: %d\n", max);
+	free(arr);
 }

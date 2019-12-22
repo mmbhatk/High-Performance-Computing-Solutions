@@ -1,50 +1,41 @@
-#include <stdio.h>
-#include <omp.h>
+#include<omp.h>
+#include<stdio.h>
 #include<stdlib.h>
 
 int main()
 {
-	int *array, i, N, max, c;
+	int i, n, *arr, max = 0, max_s = 0;
 
-	printf("Enter the number of elements\n");
-	scanf("%d", &N);
+	printf("\nEnter the number of elements: ");
+	scanf("%d", &n);
 
-	if (N <= 0) {printf("The array elements cannot be stored\n"); exit(1);}
-
-	array = (int *) malloc(sizeof(int) * N);
-	for (i = 0; i < N; i++)	array[i] = rand()%1000;
-	printf("\nThe array elements are:\n");
-	for (i = 0; i < N; i++) printf("%d\t", array[i]);
-
-	if (N== 1) {printf("The Largest Number In The Array is %d", array[0]); exit(1);}
+	arr = (int *)malloc(sizeof(int) * n);
+	for(i = 0; i < n; i++) arr[i] = rand() % 1000;
+	printf("\nThe array elements are: \n");
+	for(i = 0; i < n; i++) printf("%d\t", arr[i]);
 
 	omp_set_num_threads(8);
 
-	max = 0;
+	// Parallel computation
 	#pragma omp parallel for
-	for (i = 0; i < N; i = i + 1)
+	for(i = 0; i < n; i++)
 	{
-		if (array[i] > max)
+		if(arr[i] > max)
+		{
 			#pragma omp critical
-			if (array[i] > max)
-				max = array[i];
+			if(arr[i] > max) max = arr[i];
+		}
 	}
 
-	/* Serial Calculation */
-	c = array[0];
-	for (i = 1; i < N ; i++)
-		if (array[i] > c )
-			c = array[i];
+	//Serial computation
+	for(i = 0; i < n; i++)
+		if(arr[i] > max_s)
+			max_s = arr[i];
 
+	// Check for output validity
+	if(max == max_s) printf("\nMax value is the same for serial and parallel computation.\n");
+	else printf("\nMax value is not the same for serial and parallel computation.\n");
 
-	/* Checking For Output Validity */
-	if (c == max) printf("\nThe Max Value Is Same From Serial And Parallel OpenMP Directive");
-	else
-	{
-		printf("\nThe Max Value Is Not Same In Serial And Parallel OpenMP Directive");
-		exit(1);
-	}
-
-	free(array);
-	printf("\nThe Largest Number In The Given Array Is %d\n", max);
+	printf("\nThe largest number in the given array is: %d\n", max);
+	free(arr);
 }
