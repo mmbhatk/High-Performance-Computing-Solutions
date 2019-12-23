@@ -1,54 +1,49 @@
+%%cu
+
 #include <stdio.h>
 
-__global__ void LM(float in)
+__global__ void LM(float x)
 {
-//	float f;
-//	f = in; 	
+	float f = x; 	 
 }
+
 
 __global__ void GM(float *array)
 {
-	array[threadIdx.x] = 2.0f * (float) threadIdx.x;
+	array[threadIdx.x] = 2.0 * (float)threadIdx.x;
 }
+
 
 __global__ void SM(float *array)
 {
 	int i, index = threadIdx.x;
-	float average, sum = 0.0f;
-
-	__shared__ float sh_arr[128];
-
-	sh_arr[index] = array[index];
-
+	float average, sum = 0.0;
+ 
+  __shared__ float shared_arr[128];
+	shared_arr[index] = array[index];
+ 
 	__syncthreads();
 
-for (i=0; i<index; i++)
-{
-sum += sh_arr[i];
-}
-	average = sum / (index + 1.0f);
+  for(i = 0; i <= index; i++) sum += shared_arr[i];
 
-	printf("Thread id = %d\t Average = %f\n",index,average);
-
-	if (array[index] > average) { array[index] = average; }
-	sh_arr[index] = 3.14;
+  average = sum / (index + 1);
+	printf("Thread id = %d\t Average = %f\n", index, average);
 }
 
 int main(int argc, char **argv)
 {
-LM<<<1, 128>>>(2.0f);
-
-float h_arr[128];
-float *d_arr;
-
-cudaMalloc((void **) &d_arr, sizeof(float) * 128);
-cudaMemcpy((void *)d_arr, (void *)h_arr, sizeof(float) * 128, cudaMemcpyHostToDevice);
-GM<<<1, 128>>>(d_arr);
-cudaMemcpy((void *)h_arr, (void *)d_arr, sizeof(float) * 128, cudaMemcpyDeviceToHost);
-
-SM<<<1, 128>>>(d_arr);
-cudaMemcpy((void *)h_arr, (void *)d_arr, sizeof(float) * 128, cudaMemcpyHostToDevice);
+  float h_arr[128], *d_arr;
+  cudaMalloc((void **) &d_arr, sizeof(float) * 128);
+ 
+  LM<<<1, 128>>>(2.0);
+ 
+  cudaMemcpy((void *)d_arr, (void *)h_arr, sizeof(float) * 128, cudaMemcpyHostToDevice);
+  GM<<<1, 128>>>(d_arr);
+  
+  cudaMemcpy((void *)h_arr, (void *)d_arr, sizeof(float) * 128, cudaMemcpyDeviceToHost);
+  SM<<<1, 128>>>(d_arr);
 
 	cudaDeviceSynchronize();
+ 
 	return 0;
 }
