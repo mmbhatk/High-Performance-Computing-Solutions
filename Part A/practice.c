@@ -1,70 +1,35 @@
 #include<omp.h>
 #include<stdio.h>
 #include<stdlib.h>
+#define N 100000000
 
-#define NRA 5
-#define NCA 5
-#define NCB 5
-
-int main(int argc, char* argv[])
+int main()
 {
-	int i, j, k, tid, chunk, nthreads;
-	double a[NRA][NCA], b[NCA][NCB], c[NRA][NCB];
-	chunk = 2;
+	int i, p = 2, count, *prime;
+	double t1, t2;
 
-	#pragma omp parallel shared(a, b, c, nthreads, chunk) private(i, j, k, tid)
+	prime = (int *)malloc((N+1) * sizeof(int));
+	for(i = 0; i < N; i++) prime[i] = 1;
+
+	printf("\nMaximum number of threads: %d\n", omp_get_max_threads());
+
+	t1 = omp_get_wtime();
+
+	#pragma omp parallel firstprivate(p) private(i)
+	while(p * p <= N)
 	{
-		tid = omp_get_thread_num();
-		if(tid == 0)
-		{
-			nthreads = omp_get_num_threads();
-			printf("\nNumber of threads: %d", nthreads);
-			printf("\nInitializing matrices.");
-		}
-
-		#pragma omp for schedule(static, chunk)
-		for(i = 0; i < NRA; i++)
-			for(j = 0; j < NCA; j++)
-				a[i][j] = 1;
-
-		#pragma omp for schedule(static, chunk)
-		for(i = 0; i < NCA; i++)
-			for(j = 0; j < NCB; j++)
-				b[i][j] = 1;
-
-		#pragma omp for schedule(static, chunk)
-		for(i = 0; i < NRA; i++)
-			for(j = 0; j < NCB; j++)
-				c[i][j] = 0;
-
-		#pragma omp for schedule(static, chunk)
-		for(i = 0; i < NRA; i++)
-		{
-			printf("\nThread [%d] did row %d.", tid, i);
-			for(j = 0; j < NCB; j++)
-				for(k = 0; k < NCA; k++)
-					c[i][j] += a[i][k] * b[k][j];
-		}
+		if(prime[p] == 1)
+			#pragma omp for
+			for(i = p * p; i <= N; i += p) prime[i] = 0;
+		p += 1;
 	}
 
-	printf("\n\nMatrix A:\n");
-	for(i = 0; i < NRA; i++)
-	{
-		for(j = 0; j < NCA; j++) printf("%f\t", a[i][j]);
-		printf("\n");
-	}
+	t2 = omp_get_wtime();
+	printf("\nTime taken: %.2f seconds\n", t2 - t1);
 
-	printf("\n\nMatrix B:\n");
-	for(i = 0; i < NCA; i++)
-	{
-		for(j = 0; j < NCB; j++) printf("%f\t", b[i][j]);
-		printf("\n");
-	}
+	count = 0;
+	for(i = 2; i < N; i++)
+		if(prime[i]) count++;
 
-	printf("\n\nMatrix c:\n");
-	for(i = 0; i < NRA; i++)
-	{
-		for(j = 0; j < NCB; j++) printf("%f\t", c[i][j]);
-		printf("\n");
-	}
+	printf("\n%d primes between 0 and %d", count, N);
 }

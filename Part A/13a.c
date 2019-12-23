@@ -1,35 +1,35 @@
-#include <omp.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include<omp.h>
+#include<stdio.h>
+#include<stdlib.h>
+#define N 100000000
 
-int main (int argc, char *argv[])
+int main()
 {
-	int nthreads, tid, procs, maxt, inpar, dynamic, nested;
+	int i, p = 2, count, *prime;
+	double t1, t2;
 
-	#pragma omp parallel private(nthreads, tid)
+	prime = (int *)malloc((N+1) * sizeof(int));
+	for(i = 0; i < N; i++) prime[i] = 1;
+
+	printf("\nMaximum number of threads: %d\n", omp_get_max_threads());
+
+	t1 = omp_get_wtime();
+
+	#pragma omp parallel firstprivate(p) private(i)
+	while(p * p <= N)
 	{
-		tid = omp_get_thread_num();
-		if (tid == 0)
-		{
-	 		printf("Thread %d getting environment info...\n", tid);
-	 		procs = omp_get_num_procs();
-			//Number of processors
-	 		nthreads = omp_get_num_threads();
-			//Number of threads
-	 		maxt = omp_get_max_threads();
-			//Maximum number of threads
-	 		inpar = omp_in_parallel();
-			//omp_set_dynamic(1);	
-			dynamic = omp_get_dynamic();
-	 		nested = omp_get_nested();
-
-	 		/* Print environment information */
-	 		printf("Number of processors = %d\n", procs);
-	 		printf("Number of threads = %d\n", nthreads);
-	 		printf("Max threads = %d\n", maxt);
-	 		printf("In parallel? = %d\n", inpar);
-	 		printf("Dynamic threads enabled? = %d\n", dynamic);
-	 		printf("Nested parallelism supported? = %d\n", nested);
-		}
+		if(prime[p] == 1)
+			#pragma omp for
+			for(i = p * p; i <= N; i += p) prime[i] = 0;
+		p += 1;
 	}
+
+	t2 = omp_get_wtime();
+	printf("\nTime taken: %.2f seconds\n", t2 - t1);
+
+	count = 0;
+	for(i = 2; i < N; i++)
+		if(prime[i]) count++;
+
+	printf("\n%d primes between 0 and %d", count, N);
 }
