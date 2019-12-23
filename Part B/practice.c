@@ -17,7 +17,6 @@ int main(int argc, char* argv[])
 	MPI_Bcast(msg, BUFFER_SIZE, MPI_CHAR, 0, MPI_COMM_WORLD);
 	printf("\n[%d] %s", rank, msg);
 
-	// Wait for every process to reach this code
 	MPI_Barrier(MPI_COMM_WORLD);
 	MPI_Finalize();
 }
