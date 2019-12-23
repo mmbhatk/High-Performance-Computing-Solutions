@@ -1,21 +1,19 @@
-%%cu
-
 #include<stdio.h>
 #define BLOCK_WIDTH 4
 #define W 4
 
 __global__ void matMul(double* a, double* b, double* c, int w)
 {
-    int row = threadIdx.x;
-    int col = threadIdx.y;
+    int col = threadIdx.x;
+    int row = threadIdx.y;
     int value = 0;
     for(int i = 0; i < w; i++)
     {
-        int a_var = a[col * w + i];
-        int b_var = b[i * w + row];
+        int a_var = a[row * w + i];
+        int b_var = b[i * w + col];
         value += a_var * b_var;
     }
-    c[col * w + row] = value;
+    c[row * w + col] = value;
 }
 
 int main()
@@ -51,7 +49,7 @@ int main()
     cudaMemcpy(d_b, h_b, bytes, cudaMemcpyHostToDevice);
 
     dim3 threads(BLOCK_WIDTH, BLOCK_WIDTH);
-    dim3 grid(W / threads.x, W / threads.y);
+    dim3 grid(BLOCK_WIDTH, BLOCK_WIDTH);
  
     matMul<<<grid, threads>>>(d_a, d_b, d_c, W);
  
