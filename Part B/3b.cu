@@ -10,7 +10,7 @@ __global__ void LM(float x)
 
 __global__ void GM(float *array)
 {
-	array[threadIdx.x] = 2.0 * (float)threadIdx.x;
+	array[threadIdx.x] = 1.0 * (float)threadIdx.x;
 }
 
 
@@ -33,14 +33,15 @@ __global__ void SM(float *array)
 int main(int argc, char **argv)
 {
   	float h_arr[128], *d_arr;
-	cudaMalloc((void **) &d_arr, sizeof(float) * 128);
+    	size_t bytes = 128 * sizeof(float);
+	cudaMalloc(&d_arr, bytes);
  
 	LM<<<1, 128>>>(2.0);
  
-	cudaMemcpy((void *)d_arr, (void *)h_arr, sizeof(float) * 128, cudaMemcpyHostToDevice);
+	cudaMemcpy(d_arr, h_arr, bn, cudaMemcpyHostToDevice);
 	GM<<<1, 128>>>(d_arr);
   
-	cudaMemcpy((void *)h_arr, (void *)d_arr, sizeof(float) * 128, cudaMemcpyDeviceToHost);
+	cudaMemcpy(h_arr, d_arr, sizeof(float) * 128, cudaMemcpyDeviceToHost);
 	SM<<<1, 128>>>(d_arr);
 
 	cudaDeviceSynchronize();
